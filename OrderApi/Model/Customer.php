@@ -27,18 +27,26 @@ class Customer
      */
     private $_addressFactory;
 
+    /**
+     * @var \Magento\Customer\Model\Data\RegionFactory
+     */
+    private $_regionFactory;
+
     public function __construct
     (
         \Magento\Customer\Model\AccountManagementFactory    $accountManagementFactory,
         \Magento\Customer\Api\Data\CustomerInterfaceFactory $customer,
         CustomerTokenFactory                                $customerToken,
-        \Magento\Customer\Model\AddressFactory              $addressFactory
+        \Magento\Customer\Api\Data\AddressInterfaceFactory  $addressFactory,
+        \Magento\Customer\Model\Data\RegionFactory          $region
+
     )
     {
         $this->_accountManagementFactory  = $accountManagementFactory;
         $this->_customerInterfaceFactory  = $customer;
         $this->_customerTokenFactory      = $customerToken;
         $this->_addressFactory            = $addressFactory;
+        $this->_regionFactory             = $region;
     }
 
     /**
@@ -60,7 +68,7 @@ class Customer
         $customer->setFirstname($customerData['firstname']);
         $customer->setLastname($customerData['lastname']);
 
-        $addressData        = $this->_setCustomerAddressData($customerData['addresses']);
+        $addressData[]        = $this->_setCustomerAddressData($customerData['addresses']);
         $customer->setData('addresses', $addressData);
         $output             = $accountManagement->createAccount($customer, $password);
 
@@ -80,18 +88,22 @@ class Customer
     private function _setCustomerAddressData($addressData)
     {
         /** @var \Magento\Customer\Model\AddressFactory $address */
-        $address = $this->_addressFactory->create();
+        $address       = $this->_addressFactory->create();
+
+        /** @var  $regionFactory */
+        $regionFactory = $this->_regionFactory->create();
 
         foreach($addressData as $data){
-            $address->setDefaultShipping($data['defaultShipping']);
-            $address->setDefaultBilling($data['defaultBilling']);
+            /*$address->setDefaultShipping($data['defaultShipping']);
+            $address->setDefaultBilling($data['defaultBilling']);*/
             $address->setFirstName($data['firstname']);
             $address->setLastName($data['lastname']);
-            $address->setRegionCode($data['region']['regionCode']);
-            $address->setRegione($data['region']['region']);
-            $address->setRegionId($data['region']['regionId']);
+            $regionFactory->setRegionCode($data['region']['regionCode']);
+            $regionFactory->setRegion($data['region']['region']);
+            $regionFactory->setRegionId($data['region']['regionId']);
+            $address->setRegion($regionFactory);
             $address->setPostcode($data['postcode']);
-            $address->setStreet($data['street'][0]);
+            $address->setStreet($data['street']);
             $address->setCity($data['city']);
             $address->setTelephone($data['telephone']);
             $address->setCountryId($data['countryId']);

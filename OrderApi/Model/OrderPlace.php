@@ -67,6 +67,11 @@ class OrderPlace
      */
     private $_customer;
 
+    /**
+     * @var GuestCart
+     */
+    private $_guestCart;
+
     public function __construct
     (
         \Magento\Framework\Webapi\Rest\RequestFactory       $requestFactory,
@@ -76,7 +81,8 @@ class OrderPlace
         RestResponse                                        $response,
         ServiceOutputProcessor                              $serviceOutputProcessor,
         QuoteManagementFactory                              $quoteManagement,
-        CustomerFactory                                     $customer
+        CustomerFactory                                     $customer,
+        GuestCartFactory                                    $guestCart
     )
     {
         $this->_requestFactory            = $requestFactory;
@@ -87,6 +93,7 @@ class OrderPlace
         $this->_serviceOutputProcessor    = $serviceOutputProcessor;
         $this->_quoteManagement           = $quoteManagement;
         $this->_customer                  = $customer;
+        $this->_guestCart                 = $guestCart;
     }
 
     public function placeOrder()
@@ -100,9 +107,13 @@ class OrderPlace
 
         /** @var  $quoteManagementFactory */
         $quoteManagementFactory = $this->_quoteManagement->create();
-
         $quoteId                = $quoteManagementFactory->createEmptyCartForCustomer($customer->getId());
         $quoteItemObj           = $quoteManagementFactory->addProducts($this->_bodyParams['cartItem'], $quoteId);
+
+        /** @var  $guestCartFactory */
+        $guestCartFactory       = $this->_guestCart->create();
+        $shipmentData           = $guestCartFactory->saveAddressInformation($quoteId, $this->_bodyParams['addressInformation']);
+
     }
 
 }
