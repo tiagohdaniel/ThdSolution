@@ -59,6 +59,7 @@ class Customer
         $customer->setEmail($customerData['email']);
         $customer->setFirstname($customerData['firstname']);
         $customer->setLastname($customerData['lastname']);
+
         $addressData        = $this->_setCustomerAddressData($customerData['addresses']);
         $customer->setData('addresses', $addressData);
         $output             = $accountManagement->createAccount($customer, $password);
@@ -79,7 +80,7 @@ class Customer
     private function _setCustomerAddressData($addressData)
     {
         /** @var \Magento\Customer\Model\AddressFactory $address */
-        $address            = $this->_addressFactory->create();
+        $address = $this->_addressFactory->create();
 
         foreach($addressData as $data){
             $address->setDefaultShipping($data['defaultShipping']);

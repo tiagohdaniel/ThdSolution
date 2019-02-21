@@ -68,7 +68,7 @@ class QuoteManagement
     public function addProducts($items, $quoteId)
     {
         /** @var  $itemFactory */
-        $itemFactory            = $this->_item->create();
+        $itemFactory           = $this->_item->create();
 
         /** @var  $itemRepositoryFactory */
         $itemRepositoryFactory = $this->_itemRepository->create();
