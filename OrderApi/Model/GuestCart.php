@@ -35,12 +35,14 @@ class GuestCart
     (
         \Magento\Checkout\Model\ShippingInformationManagementFactory   $guestShippingMethodManagement,
         \Magento\Quote\Model\Quote\AddressFactory                      $address,
-        \Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory $addressApi
+        \Magento\Checkout\Api\Data\ShippingInformationInterfaceFactory $addressApi,
+        \Magento\Quote\Api\Data\AddressInterfaceFactory                $addressInterface
     )
     {
         $this->_guestShippingMethodManagement = $guestShippingMethodManagement;
         $this->_addressFactory                = $address;
         $this->_addressApi                    = $addressApi;
+        $this->_addressInterface              = $addressInterface;
     }
 
     /**
@@ -56,12 +58,20 @@ class GuestCart
         $guestShippingMethodManagementFactory = $this->_guestShippingMethodManagement->create();
         $addressApiFactory                    = $this->_addressApi->create();
 
-        // set Shipping and billinfo address object in $addressInformation ()Magento\Quote\Model\Address
-        //****************************************************
-        $addressApiFactory->setData($addressInformation);
+        /** @var  $addressInterfaceFactory */
+        $addressInterfaceFactory              = $this->_addressInterface->create();
+        $addressInterfaceFactory->setData($addressInformation["shipping_address"]);
+        $addressApiFactory->setShippingAddress($addressInterfaceFactory);
 
+        /** @var  $addressInterfaceFactory creates another object to setup a billing address*/
+        $addressInterfaceFactory              = $this->_addressInterface->create();
+        $addressInterfaceFactory->setData($addressInformation["billing_address"]);
+        $addressApiFactory->setBillingAddress($addressInterfaceFactory);
+
+        $addressApiFactory->setShippingCarrierCode($addressInformation["shipping_carrier_code"]);
+        $addressApiFactory->setShippingMethodCode($addressInformation["shipping_method_code"]);
         $shipmentData                         = $guestShippingMethodManagementFactory->saveAddressInformation($cartId, $addressApiFactory);
 
-        return $shipmentData;
+        return $addressApiFactory->getBillingAddress();
     }
 }

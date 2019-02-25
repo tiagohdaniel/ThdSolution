@@ -72,6 +72,11 @@ class OrderPlace
      */
     private $_guestCart;
 
+    /**
+     * @var PaymentInformationManagement
+     */
+    private $_paymentInformationManagement;
+
     public function __construct
     (
         \Magento\Framework\Webapi\Rest\RequestFactory       $requestFactory,
@@ -82,37 +87,44 @@ class OrderPlace
         ServiceOutputProcessor                              $serviceOutputProcessor,
         QuoteManagementFactory                              $quoteManagement,
         CustomerFactory                                     $customer,
-        GuestCartFactory                                    $guestCart
+        GuestCartFactory                                    $guestCart,
+        PaymentInformationManagementFactory                 $paymentInformationManagement
     )
     {
-        $this->_requestFactory            = $requestFactory;
-        $this->_serviceInputProcessor     = $serviceInputProcessor;
-        $this->_rest                      = $rest;
-        $this->_fieldsFilter              = $fieldsFilter;
-        $this->_response                  = $response;
-        $this->_serviceOutputProcessor    = $serviceOutputProcessor;
-        $this->_quoteManagement           = $quoteManagement;
-        $this->_customer                  = $customer;
-        $this->_guestCart                 = $guestCart;
+        $this->_requestFactory               = $requestFactory;
+        $this->_serviceInputProcessor        = $serviceInputProcessor;
+        $this->_rest                         = $rest;
+        $this->_fieldsFilter                 = $fieldsFilter;
+        $this->_response                     = $response;
+        $this->_serviceOutputProcessor       = $serviceOutputProcessor;
+        $this->_quoteManagement              = $quoteManagement;
+        $this->_customer                     = $customer;
+        $this->_guestCart                    = $guestCart;
+        $this->_paymentInformationManagement = $paymentInformationManagement;
     }
 
     public function placeOrder()
     {
-        $requestObj             =  $this->_requestFactory->create();
-        $this->_bodyParams      = $requestObj->getBodyParams();
+        $requestObj                =  $this->_requestFactory->create();
+        $this->_bodyParams         = $requestObj->getBodyParams();
 
         /** @var  $customerFactory */
-        $customerFactory        = $this->_customer->create();
-        $customer               = $customerFactory->setCustomerData($this->_bodyParams['customer'], $this->_bodyParams['password']);
+        $customerFactory           = $this->_customer->create();
+        $customer                  = $customerFactory->setCustomerData($this->_bodyParams['customer'], $this->_bodyParams['password']);
 
         /** @var  $quoteManagementFactory */
-        $quoteManagementFactory = $this->_quoteManagement->create();
-        $quoteId                = $quoteManagementFactory->createEmptyCartForCustomer($customer->getId());
-        $quoteItemObj           = $quoteManagementFactory->addProducts($this->_bodyParams['cartItem'], $quoteId);
+        $quoteManagementFactory    = $this->_quoteManagement->create();
+        $quoteId                   = $quoteManagementFactory->createEmptyCartForCustomer($customer->getId());
+        $quoteItemObj              = $quoteManagementFactory->addProducts($this->_bodyParams['cartItem'], $quoteId);
 
         /** @var  $guestCartFactory */
-        $guestCartFactory       = $this->_guestCart->create();
-        $shipmentData           = $guestCartFactory->saveAddressInformation($quoteId, $this->_bodyParams['addressInformation']);
+        $guestCartFactory          = $this->_guestCart->create();
+        $shipmentBillingData       = $guestCartFactory->saveAddressInformation($quoteId, $this->_bodyParams['addressInformation']);
+
+        /** @var  $paymentInformationFactory */
+        $paymentInformationFactory = $this->_paymentInformationManagement->create();
+        $paymentInformationData    = $paymentInformationFactory->savePaymentInformationAndPlaceOrder(
+                                        $quoteId, $this->_bodyParams['paymentMethod'], $shipmentBillingData);
 
     }
 
