@@ -53,7 +53,7 @@ class GuestCart
     public function saveAddressInformation($cartId, $addressInformation)
     {
         /** @var  $guestShippingMethodManagementFactory */
-        $guestShippingMethodManagementFactory =  $this->_guestShippingMethodManagement->create();
+        $guestShippingMethodManagementFactory = $this->_guestShippingMethodManagement->create();
         $addressApiFactory                    = $this->_addressApi->create();
 
         // set Shipping and billinfo address object in $addressInformation ()Magento\Quote\Model\Address

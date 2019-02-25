@@ -68,7 +68,7 @@ class Customer
         $customer->setFirstname($customerData['firstname']);
         $customer->setLastname($customerData['lastname']);
 
-        $addressData[]        = $this->_setCustomerAddressData($customerData['addresses']);
+        $addressData[]      = $this->_setCustomerAddressData($customerData['addresses']);
         $customer->setData('addresses', $addressData);
         $output             = $accountManagement->createAccount($customer, $password);
 
