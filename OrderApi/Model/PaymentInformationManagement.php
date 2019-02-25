@@ -43,7 +43,9 @@ class PaymentInformationManagement
         $this->_paymentInterface             = $paymentInterface;
     }
 
-    public function savePaymentInformationAndPlaceOrder($cartId, $paymentMethod, $billingAddress = null)
+    public function savePaymentInformationAndPlaceOrder(
+        $cartId, $paymentMethod, \Magento\Quote\Api\Data\AddressInterface $billingAddress = null
+    )
     {
         /** @var  $paymentInterfaceFactory */
         $paymentInterfaceFactory             = $this->_paymentInterface->create();
