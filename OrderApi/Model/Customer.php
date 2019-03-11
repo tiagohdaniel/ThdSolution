@@ -32,13 +32,19 @@ class Customer
      */
     private $_regionFactory;
 
+    /**
+     * @var \Magento\Customer\Api\CustomerRepositoryInterface
+     */
+    private $_customerRepository;
+
     public function __construct
     (
         \Magento\Customer\Model\AccountManagementFactory    $accountManagementFactory,
         \Magento\Customer\Api\Data\CustomerInterfaceFactory $customer,
         CustomerTokenFactory                                $customerToken,
         \Magento\Customer\Api\Data\AddressInterfaceFactory  $addressFactory,
-        \Magento\Customer\Model\Data\RegionFactory          $region
+        \Magento\Customer\Model\Data\RegionFactory          $region,
+        \Magento\Customer\Model\CustomerFactory             $customerRepository
 
     )
     {
@@ -47,6 +53,7 @@ class Customer
         $this->_customerTokenFactory      = $customerToken;
         $this->_addressFactory            = $addressFactory;
         $this->_regionFactory             = $region;
+        $this->_customerRepository        = $customerRepository;
     }
 
     /**
@@ -58,6 +65,13 @@ class Customer
      */
     public function setCustomerData($customerData, $password)
     {
+        /**
+         * check if customer already exists
+         */
+        if ($customerAccount = $this->_isCustomerExists($customerData, 1)) {
+            return $customerAccount;
+        }
+
         /** @var \Magento\Customer\Model\AccountManagement $accountManagement */
         $accountManagement  = $this->_accountManagementFactory->create();
 
@@ -110,6 +124,27 @@ class Customer
         }
 
         return $address;
+    }
+
+    /**
+     * check if customer exists
+     *
+     * @param $customerData
+     * @param null $websiteId
+     * @return bool|\Magento\Customer\Model\Customer
+     */
+    private function _isCustomerExists($customerData, $websiteId = null)
+    {
+        $customer = $this->_customerRepository->create();
+        if ($websiteId) {
+            $customer->setWebsiteId($websiteId);
+        }
+        $customer->loadByEmail($customerData['email']);
+        if ($customer->getId()) {
+            return $customer;
+        }
+
+        return false;
     }
 
 }
